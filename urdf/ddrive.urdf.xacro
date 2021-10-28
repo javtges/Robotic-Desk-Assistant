@@ -1,19 +1,18 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/wiki/xacro" name="twoarm">
+<robot xmlns:xacro="http://wiki.ros.org/wiki/xacro" name="ddrive">
 
-    <xacro:property name="props_arm" value="$(find homework2)/config/arm.yaml"/>
-    <xacro:property name="arm" value="${load_yaml(props_arm)}"/>
-    <xacro:property name="L1" value="${arm['L1']}"/>
-    <xacro:property name="L2" value="${arm['L2']}"/>
-    <xacro:property name="R1" value="${arm['R1']}"/>
-    <xacro:property name="R2" value="${arm['R2']}"/>
+    <xacro:property name="ddrive" value="$(find homework3)/config/ddrive.yaml"/>
+    <xacro:property name="ddrive" value="${load_yaml(ddrive)}"/>
+    <xacro:property name="wheelW" value="${ddrive['wheelWidth']}"/>
+    <xacro:property name="wheelR" value="${ddrive['wheelRadius']}"/>
+    <xacro:property name="L" value="${ddrive['L']}"/>
+    <xacro:property name="W" value="${ddrive['W']}"/>
+    <xacro:property name="H" value="${ddrive['H']}"/>
+
     <xacro:property name='pi' value="3.14159"/>
 
 
-
-    <link name="base_link"/>
-
-    <link name="arm1">
+    <link name="leftWheel">
 
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
@@ -24,7 +23,7 @@
         <visual>
             <origin xyz="${L1/2} 0 0" rpy="${pi/2} 0 ${pi/2}" />
             <geometry>
-                <cylinder radius="${R1}" length="${L1}" />
+                <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
             <material name="blue_mat">
                 <color rgba="0 0 1 1" />
@@ -34,14 +33,13 @@
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <cylinder radius="${R1}" length="${L1}"/>
+                <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
         </collision>
 
-
     </link>
 
-    <link name="arm2">
+    <link name="rightWheel">
 
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
@@ -52,7 +50,7 @@
         <visual>
             <origin xyz="${L2/2} 0 0" rpy="${pi/2} 0 ${pi/2}" />
             <geometry>
-                <cylinder radius="${R2}" length="${L2}" />
+                <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
             <material name="red_mat">
                 <color rgba="1 0 0 1" />
@@ -62,14 +60,40 @@
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <cylinder radius="${R2}" length="${L2}"/>
+                <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
         </collision>
 
     </link>
 
 
-    <link name="end_effector"/>
+    <link name="body">
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="1"/>
+            <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
+        </inertial>
+
+        <visual>
+            <origin xyz="${L2/2} 0 0" rpy="${pi/2} 0 ${pi/2}" />
+            <geometry>
+                <box size="${L} ${W} ${H}"/>
+            </geometry>
+            <material name="red_mat">
+                <color rgba="1 0 0 1" />
+            </material>
+        </visual>
+x
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${L} ${W} ${H}"/>
+            </geometry>
+        </collision>
+
+    </link>
+
 
 
 

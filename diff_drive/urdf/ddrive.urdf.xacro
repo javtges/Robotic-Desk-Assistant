@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/wiki/xacro" name="ddrive">
 
-    <xacro:property name="ddrive" value="$(find homework3)/config/ddrive.yaml"/>
+    <xacro:property name="ddrive" value="$(find diff_drive)/config/ddrive.yaml"/>
     <xacro:property name="ddrive" value="${load_yaml(ddrive)}"/>
     <xacro:property name="wheelW" value="${ddrive['wheelWidth']}"/>
     <xacro:property name="wheelR" value="${ddrive['wheelRadius']}"/>

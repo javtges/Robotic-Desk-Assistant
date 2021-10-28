@@ -14,14 +14,14 @@
 
     <link name="leftWheel">
 
-        <inertial>
+        <!-- <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <mass value="1"/>
             <inertia ixx="${(L1*L1/12) + (R1*R1/4)}"  ixy="0"  ixz="0" iyy="${(L1*L1/12) + (R1*R1/4)}" iyz="0" izz="${(R1*R1/2)}" />
-        </inertial>
+        </inertial> -->
 
         <visual>
-            <origin xyz="${L1/2} 0 0" rpy="${pi/2} 0 ${pi/2}" />
+            <origin xyz="${-W/2} ${-L/2} ${-H/2}" rpy="${pi/2} 0 ${pi/2}" />
             <geometry>
                 <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
@@ -30,25 +30,25 @@
             </material>
         </visual>
 
-        <collision>
+        <!-- <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
                 <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
-        </collision>
+        </collision> -->
 
     </link>
 
     <link name="rightWheel">
 
-        <inertial>
+        <!-- <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <mass value="1"/>
             <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
-        </inertial>
+        </inertial> -->
 
         <visual>
-            <origin xyz="${L2/2} 0 0" rpy="${pi/2} 0 ${pi/2}" />
+            <origin xyz="${W/2} ${L/2} ${H/2}" rpy="${pi/2} 0 ${pi/2}" />
             <geometry>
                 <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
@@ -57,26 +57,26 @@
             </material>
         </visual>
 
-        <collision>
+        <!-- <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
                 <cylinder radius="${wheelR}" length="${wheelW}" />
             </geometry>
-        </collision>
+        </collision> -->
 
     </link>
 
 
     <link name="body">
 
-        <inertial>
+        <!-- <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <mass value="1"/>
             <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
-        </inertial>
+        </inertial> -->
 
         <visual>
-            <origin xyz="${L2/2} 0 0" rpy="${pi/2} 0 ${pi/2}" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
                 <box size="${L} ${W} ${H}"/>
             </geometry>
@@ -84,38 +84,32 @@
                 <color rgba="1 0 0 1" />
             </material>
         </visual>
-x
-        <collision>
+
+        <!-- <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
                 <box size="${L} ${W} ${H}"/>
             </geometry>
-        </collision>
+        </collision> -->
 
     </link>
 
 
 
 
-    <joint name="joint1" type="continuous">
-        <parent link="base_link" />
-        <child link="arm1" />
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
+    <joint name="jointR" type="continuous">
+        <parent link="body" />
+        <child link="rightWheel" />
+        <origin xyz="${L} 0 0" rpy="0 0 0"/>
+        <axis xyz="0 1 0"/>
     </joint>
 
-    <joint name="joint2" type="continuous">
-        <origin xyz="${L1} 0 0" rpy="0 0 0" />
-        <parent link="arm1" />
-        <child link="arm2" />
-        <axis xyz="0 0 1"/>
+    <joint name="jointL" type="continuous">
+        <origin xyz="${L} 0 0" rpy="0 0 0" />
+        <parent link="bro" />
+        <child link="leftWheel" />
+        <axis xyz="0 1 0"/>
     </joint>
 
-    <joint name="joint3" type="fixed">
-        <origin xyz="${L2} 0 0" rpy="0 0 0" />
-        <parent link="arm2" />
-        <child link="end_effector" />
-        <axis xyz="0 0 1"/>
-    </joint>
 
 </robot>

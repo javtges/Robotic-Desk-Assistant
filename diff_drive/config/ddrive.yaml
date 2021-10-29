@@ -2,7 +2,9 @@
 
 wheelWidth: 0.1
 wheelRadius: 0.2
-L: 0.5
+topWheelWidth: 0.05
+topWheelRadius: 0.1
+L: 0.6
 W: 0.3
 H: 0.2
 

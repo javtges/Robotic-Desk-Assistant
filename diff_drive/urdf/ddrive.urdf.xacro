@@ -38,7 +38,7 @@
 
     </link>
 
-    <!-- <link name="rightWheel"> -->
+    <link name="rightWheel">
 
         <!-- <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
@@ -46,7 +46,7 @@
             <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
         </inertial> -->
 
-        <!-- <visual>
+        <visual>
             <origin xyz="${W/2} ${L/2} ${H/2}" rpy="${pi/2} 0 ${pi/2}" />
             <geometry>
                 <cylinder radius="${wheelR}" length="${wheelW}" />
@@ -54,7 +54,7 @@
             <material name="red_mat">
                 <color rgba="1 0 0 1" />
             </material>
-        </visual> -->
+        </visual>
 
         <!-- <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -63,10 +63,10 @@
             </geometry>
         </collision> -->
 
-    <!-- </link> -->
+    </link>
 
 
-    <!-- <link name="body"> -->
+    <link name="body">
 
         <!-- <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
@@ -74,7 +74,7 @@
             <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
         </inertial> -->
 
-        <!-- <visual>
+        <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
                 <box size="${L} ${W} ${H}"/>
@@ -82,7 +82,7 @@
             <material name="red_mat">
                 <color rgba="1 0 0 1" />
             </material>
-        </visual> -->
+        </visual>
 
         <!-- <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -91,12 +91,12 @@
             </geometry>
         </collision> -->
 
-    <!-- </link> -->
+    </link>
 
 
 
 
-    <!-- <joint name="jointR" type="continuous">
+    <joint name="jointR" type="continuous">
         <parent link="body" />
         <child link="rightWheel" />
         <origin xyz="${L} 0 0" rpy="0 0 0"/>
@@ -105,10 +105,10 @@
 
     <joint name="jointL" type="continuous">
         <origin xyz="${L} 0 0" rpy="0 0 0" />
-        <parent link="bro" />
+        <parent link="body" />
         <child link="leftWheel" />
         <axis xyz="0 1 0"/>
-    </joint> -->
+    </joint>
 
 
 </robot>

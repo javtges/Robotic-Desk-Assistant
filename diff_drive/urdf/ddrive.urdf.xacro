@@ -12,16 +12,19 @@
     <xacro:property name="H" value="${drive['H']}"/>
     <xacro:property name='pi' value="3.14159"/>
 
-    <xacro:include filename="$(find diff_drive)/urdf/ddrive.gazebo.xacro"/>
+    <!-- <xacro:include filename="$(find diff_drive)/urdf/ddrive.gazebo.xacro"/> -->
+
+
+    <link name="base_link"/>
 
 
     <link name="leftWheel">
 
-        <!-- <inertial>
+        <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="1"/>
-            <inertia ixx="${(L1*L1/12) + (R1*R1/4)}"  ixy="0"  ixz="0" iyy="${(L1*L1/12) + (R1*R1/4)}" iyz="0" izz="${(R1*R1/2)}" />
-        </inertial> -->
+            <mass value="0.5"/>
+            <inertia ixx="${1/12*(3*wheelR*wheelR + wheelW*wheelW)}"  ixy="0"  ixz="0" iyy="${1/12*wheelR*wheelR}" iyz="0" izz="${1/12*(3*wheelR*wheelR + wheelW*wheelW)}" />
+        </inertial>
 
         <visual>
             <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
@@ -44,11 +47,11 @@
 
     <link name="rightWheel">
 
-        <!-- <inertial>
+        <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="1"/>
-            <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
-        </inertial> -->
+            <mass value="0.5"/>
+            <inertia ixx="${1/12*(3*wheelR*wheelR + wheelW*wheelW)}"  ixy="0"  ixz="0" iyy="${1/12*wheelR*wheelR}" iyz="0" izz="${1/12*(3*wheelR*wheelR + wheelW*wheelW)}" />
+        </inertial>
 
         <visual>
             <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
@@ -72,11 +75,11 @@
 
     <link name="body">
 
-        <!-- <inertial>
+        <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="1"/>
-            <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
-        </inertial> -->
+            <mass value="2"/>
+            <inertia ixx="${1/12*(W*W + H*H)}"  ixy="0"  ixz="0" iyy="${1/12*(W*W+L*L)}" iyz="0" izz="${1/12*(H*H+L*L)}"/>
+        </inertial>
 
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
@@ -99,11 +102,11 @@
 
     <link name="topWheel">
 
-        <!-- <inertial>
+        <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="1"/>
-            <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
-        </inertial> -->
+            <mass value="0.25"/>
+            <inertia ixx="${1/12*(3*tR*tR + tW*tW)}"  ixy="0"  ixz="0" iyy="${1/12*tR*tR}" iyz="0" izz="${1/12*(3*tR*tR + tW*tW)}" />
+        </inertial>
 
         <visual>
             <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
@@ -127,11 +130,11 @@
 
     <link name="botWheel">
 
-        <!-- <inertial>
+        <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
-            <mass value="1"/>
-            <inertia ixx="${(L2*L2/12) + (R2*R2/4)}"  ixy="0"  ixz="0" iyy="${(L2*L2/12) + (R2*R2/4)}" iyz="0" izz="${(R2*R2/2)}" />
-        </inertial> -->
+            <mass value="0.25"/>
+            <inertia ixx="${1/12*(3*tR*tR + tW*tW)}"  ixy="0"  ixz="0" iyy="${1/12*tR*tR}" iyz="0" izz="${1/12*(3*tR*tR + tW*tW)}" />
+        </inertial>
 
         <visual>
             <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
@@ -154,6 +157,12 @@
 
 
 
+    <joint name="joint1" type="fixed">
+        <parent link="base_link" />
+        <child link="body" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <axis xyz="0 0 0"/>
+    </joint>
 
 <!-- red wheel -->
     <joint name="jointR" type="continuous">

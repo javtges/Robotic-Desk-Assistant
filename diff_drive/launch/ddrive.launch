@@ -1,6 +1,7 @@
 <launch>
 
-    <node name="gazebo" pkg="gazebo_ros" type="gazebo" args="-d $(find diff_drive)/worlds/ddrive.world"/>
+
+    <!-- <node name="gazebo" pkg="gazebo_ros" type="gazebo" args="-d $(find diff_drive)/worlds/ddrive.world"/> -->
 
     <param name = "robot_description" command="$(find xacro)/xacro '$(find diff_drive)/urdf/ddrive.gazebo.xacro'"/>
 
@@ -9,7 +10,13 @@
     <!-- <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui"/> -->
 
 
-    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model ddrive" />
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -x 0 -y 0 -z 5 -model ddrive" />
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name = "world_name" value = "$(find diff_drive)/worlds/ddrive.world" />
+        <arg name = "paused" value = "true"/>
+    </include>
+
+    <node name="flip" pkg="diff_drive" type="flip"/>
 
 
 </launch>

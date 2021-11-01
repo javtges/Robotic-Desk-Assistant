@@ -56,7 +56,6 @@ class Mover:
         print("it made it here")
         rospy.sleep(5)
 
-        self.add_box()
         self.add_table()
 
 
@@ -90,13 +89,18 @@ class Mover:
         # If we exited the while loop without returning then we timed out
         return False
 
-    def reset(self):
+    def reset(self, req):
         '''
         Takes a position and orientation of the realsense box and creates/moves the realsense box to the appropriate location
         Moves the robot to its predefined Home position
         Takes a parameter that determines if the waypoints are cleared or not - ??????????
         '''
-        
+        self.add_box()
+        self.move_group.set_named_target("Sleep")
+        self.move_group.go()
+        #ToDo: edit add_box to take positional arguments
+
+
         return EmptyResponse
 
     def step(self):

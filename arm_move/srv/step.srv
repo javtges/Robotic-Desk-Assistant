@@ -1,0 +1,4 @@
+geometry_msgs/Point point# The pose of the end effector
+bool gripper_pose
+---
+int32 MoveItErrorCodes

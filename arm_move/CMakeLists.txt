@@ -8,11 +8,13 @@ project(arm_move)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-rospy
-std_msgs
-tf2
-tf2_ros
-
+  geometry_msgs
+  message_generation
+  moveit_msgs
+  rospy
+  std_msgs
+  tf2
+  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -55,12 +57,11 @@ tf2_ros
 #   Message2.msg
 # )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
+#Generate services in the 'srv' folder
+add_service_files( FILES
 #   Service1.srv
-#   Service2.srv
-# )
+  step.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -70,10 +71,13 @@ tf2_ros
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+  moveit_msgs
+  std_msgs  # Or other packages containing msgs
+   
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -107,7 +111,7 @@ tf2_ros
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES arm_move
-  CATKIN_DEPENDS message_runtime rospy std_msgs
+  CATKIN_DEPENDS geometry_msgs message_generation message_runtime moveit_msgs rospy std_msgs 
 #  DEPENDS system_lib
 )
 

@@ -25,6 +25,7 @@ PARAMETERS:
 
 import sys
 import copy
+
 import rospy
 import moveit_commander
 import moveit_msgs.msg
@@ -33,6 +34,7 @@ from std_msgs.msg import String
 from std_srvs.srv import Empty, EmptyResponse
 from moveit_commander.conversions import pose_to_list
 from interbotix_xs_modules.arm import InterbotixManipulatorXS
+from arm_move.srv import step
 
 
 class Mover:
@@ -40,7 +42,7 @@ class Mover:
     def __init__(self):
 
         self.__reset = rospy.Service("reset", Empty, self.reset)
-        self.__step = rospy.Service("step", Empty, self.step)
+        self.__step = rospy.Service("step", step, self.step)
         self.__follow = rospy.Service("follow", Empty, self.follow)
 
 
@@ -99,26 +101,39 @@ class Mover:
         self.move_group.set_named_target("Sleep")
         self.move_group.go()
         #ToDo: edit add_box to take positional arguments
+        #ToDo: edit to have option to clear waypoint list in parameter server
+        rospy.logerr(self.move_group.get_current_pose())
 
+        return EmptyResponse()
 
-        return EmptyResponse
-
-    def step(self):
+    def step(self, req):
         '''
         Moves the robot to a user-specified position
         If fail, returns MoveItErrorCode
         If success, adds it to parameter server
         '''
+        x = req.position.x
+        y = req.position.y
+        z = req.position.z
+        rx = req.orientation.x
+        ry = req.orientation.y
+        rz = req.orientation.z
+        rw = req.orientation.w
+        xyz = [x,y,z]
+        #self.move_group.set_pose_target()
+        rospy.logerr([x,y,z,rx,ry,rz,rw])
+        self.move_group.set_position_target(xyz)
+        self.move_group.plan()
+        self.move_group.go()
+        return None
 
-        return EmptyResponse
-
-    def follow(self):
+    def follow(self, req):
         '''
         Has the robot move to each waypoint, in sequence
         Has an option that determines if the cycle should be repeated or not
         '''
 
-        return EmptyResponse
+        return EmptyResponse()
 
     def add_box(self, timeout=0):
 

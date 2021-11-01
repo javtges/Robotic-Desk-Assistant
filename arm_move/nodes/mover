@@ -56,23 +56,6 @@ class Mover:
         print("it made it here")
         rospy.sleep(5)
 
-        # # We can get the name of the reference frame for this robot:
-        # planning_frame = move_group.get_planning_frame()
-        # print("============ Planning frame: %s" % planning_frame)
-
-        # # We can also print the name of the end-effector link for this group:
-        # eef_link = move_group.get_end_effector_link()
-        # print("============ End effector link: %s" % eef_link)
-
-        # # We can get a list of all the groups in the robot:
-        # group_names = robot.get_group_names()
-        # print("============ Available Planning Groups:", robot.get_group_names())
-
-        # Sometimes for debugging it is useful to print the entire state of the
-        # robot:
-        # print("============ Printing robot state")
-        # print(robot.get_current_state())
-        # print("")
         self.add_box()
         self.add_table()
 
@@ -108,13 +91,30 @@ class Mover:
         return False
 
     def reset(self):
-        pass
+        '''
+        Takes a position and orientation of the realsense box and creates/moves the realsense box to the appropriate location
+        Moves the robot to its predefined Home position
+        Takes a parameter that determines if the waypoints are cleared or not - ??????????
+        '''
+        
+        return EmptyResponse
 
     def step(self):
-        pass
+        '''
+        Moves the robot to a user-specified position
+        If fail, returns MoveItErrorCode
+        If success, adds it to parameter server
+        '''
+
+        return EmptyResponse
 
     def follow(self):
-        pass
+        '''
+        Has the robot move to each waypoint, in sequence
+        Has an option that determines if the cycle should be repeated or not
+        '''
+
+        return EmptyResponse
 
     def add_box(self, timeout=0):
 
@@ -137,6 +137,7 @@ class Mover:
         box_pose.pose.position.z = -0.5
         box_pose.pose.position.y = 0  
         box_pose.pose.position.x = 0 
+        
         
         box_name = "table"
         self.scene.add_box(box_name, box_pose, size=(1, 1, 1))

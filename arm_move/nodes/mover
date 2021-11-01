@@ -45,7 +45,7 @@ class Mover:
         self.__step = rospy.Service("step", step, self.step_cb)
         self.__follow = rospy.Service("follow", follow, self.follow)
 
-        rospy.set_param('waypoints', [])
+        #rospy.set_param('waypoints', [])
 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("mover", anonymous=True)
@@ -63,13 +63,6 @@ class Mover:
 
         self.add_table()
 
-
-        #print(get_jacobian_matrix([3,3,3,3]))
-
-    def gotoJointTest(self):
-        move_group = self.move_group #not required?
-
-        joint_goal = move_group.get_current_joint_values()
 
     def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
         
@@ -191,7 +184,7 @@ class Mover:
         box_pose.header.frame_id = "world"
         box_pose.pose.orientation.w = 1.0
         box_pose.pose.position.z = 0.02
-        box_pose.pose.position.y = 0.05  
+        box_pose.pose.position.y = 0  
         box_pose.pose.position.x = 0.2 
         
         box_name = "box"

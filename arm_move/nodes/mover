@@ -34,7 +34,7 @@ from std_msgs.msg import String
 from std_srvs.srv import Empty, EmptyResponse
 from moveit_commander.conversions import pose_to_list
 from interbotix_xs_modules.arm import InterbotixManipulatorXS
-from arm_move.srv import step
+from arm_move.srv import step, follow
 
 
 class Mover:
@@ -43,8 +43,9 @@ class Mover:
 
         self.__reset = rospy.Service("reset", Empty, self.reset)
         self.__step = rospy.Service("step", step, self.step_cb)
-        self.__follow = rospy.Service("follow", Empty, self.follow)
+        self.__follow = rospy.Service("follow", follow, self.follow)
 
+        rospy.set_param('waypoints', [])
 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("mover", anonymous=True)
@@ -93,6 +94,29 @@ class Mover:
         # If we exited the while loop without returning then we timed out
         return False
 
+    def move_to_position(self, x, y, z, g):
+        xyz = [x,y,z]
+        rospy.logerr([x,y,z])
+        self.move_group.set_position_target(xyz)
+        ecv, traj, time, err = self.move_group.plan()
+        rospy.logerr(err)
+
+        if err.val == 1:
+            self.move_group.execute(traj, wait='true')
+            self.move_group.go(wait='true')
+            self.move_group.stop()
+
+            if g == True:
+                self.grip_group.set_named_target("Closed")
+
+            elif g == False:
+                self.grip_group.set_named_target("Open")
+        
+            self.grip_group.go(wait='true')
+            self.grip_group.stop()
+
+        return err.val
+
     def reset(self, req):
         '''
         Takes a position and orientation of the realsense box and creates/moves the realsense box to the appropriate location
@@ -100,7 +124,7 @@ class Mover:
         Takes a parameter that determines if the waypoints are cleared or not - ??????????
         '''
         self.add_box()
-        self.move_group.set_named_target("Sleep")
+        self.move_group.set_named_target("Home")
         self.move_group.go()
         #ToDo: edit add_box to take positional arguments
         #ToDo: edit to have option to clear waypoint list in parameter server
@@ -118,34 +142,48 @@ class Mover:
         y = req.point.y
         z = req.point.z
 
-        xyz = [x,y,z]
-        #self.move_group.set_pose_target()
-        rospy.logerr([x,y,z])
-        self.move_group.set_position_target(xyz)
-        ecv, traj, time, err = self.move_group.plan()
-        # self.move_group.go()
-        self.move_group.execute(traj, wait='true')
-        self.move_group.go(wait='true')
-        self.move_group.stop()
+        err = self.move_to_position(x,y,z,req.gripper_pose)
 
-        if req.gripper_pose == True:
-            self.grip_group.set_named_target("Closed")
-
-        elif req.gripper_pose == False:
-            self.grip_group.set_named_target("Open")
+        robot_state = [x,y,z,req.gripper_pose]
+        rospy.logerr(err)
+        if err == 1:
+            # Add the waypoint to the parameter server
+            list_of_waypoints = rospy.get_param('waypoints')
+            list_of_waypoints.append(robot_state)
+            rospy.set_param('waypoints', list_of_waypoints)
         
-        self.grip_group.go(wait='true')
-        self.grip_group.stop()
-        
-        return err.val
+        return err
 
     def follow(self, req):
         '''
         Has the robot move to each waypoint, in sequence
         Has an option that determines if the cycle should be repeated or not
         '''
+        list_of_waypoints = rospy.get_param('waypoints')
+        rospy.logerr(list_of_waypoints)
+        repeat = req.repeat
+        num_wps = len(list_of_waypoints)
 
-        return EmptyResponse()
+        if repeat == True:
+            while True:
+                for wp in range(num_wps):
+                    x = list_of_waypoints[wp][0]
+                    y = list_of_waypoints[wp][1]
+                    z = list_of_waypoints[wp][2]
+                    g = list_of_waypoints[wp][3]
+                    self.move_to_position(x,y,z,g)
+                    rospy.sleep(0.5)
+
+        if repeat == False:
+            for wp in range(num_wps):
+                    x = list_of_waypoints[wp][0]
+                    y = list_of_waypoints[wp][1]
+                    z = list_of_waypoints[wp][2]
+                    g = list_of_waypoints[wp][3]
+                    self.move_to_position(x,y,z,g)
+                    rospy.sleep(0.5)
+
+        return repeat
 
     def add_box(self, timeout=0):
 

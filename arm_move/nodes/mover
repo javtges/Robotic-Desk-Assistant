@@ -42,7 +42,7 @@ class Mover:
     def __init__(self):
 
         self.__reset = rospy.Service("reset", Empty, self.reset)
-        self.__step = rospy.Service("step", step, self.step)
+        self.__step = rospy.Service("step", step, self.step_cb)
         self.__follow = rospy.Service("follow", Empty, self.follow)
 
 
@@ -50,8 +50,10 @@ class Mover:
         rospy.init_node("mover", anonymous=True)
         print("made it to init node??")
         self.group_name = "interbotix_arm"
+        self.gripper_name = "interbotix_gripper"
 
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
+        self.grip_group = moveit_commander.MoveGroupCommander(self.gripper_name)
 
         self.scene = moveit_commander.PlanningSceneInterface()
         self.robot = moveit_commander.RobotCommander()
@@ -106,26 +108,36 @@ class Mover:
 
         return EmptyResponse()
 
-    def step(self, req):
+    def step_cb(self, req):
         '''
         Moves the robot to a user-specified position
-        If fail, returns MoveItErrorCode
+        Returns MoveItErrorCode
         If success, adds it to parameter server
         '''
-        x = req.position.x
-        y = req.position.y
-        z = req.position.z
-        rx = req.orientation.x
-        ry = req.orientation.y
-        rz = req.orientation.z
-        rw = req.orientation.w
+        x = req.point.x
+        y = req.point.y
+        z = req.point.z
+
         xyz = [x,y,z]
         #self.move_group.set_pose_target()
-        rospy.logerr([x,y,z,rx,ry,rz,rw])
+        rospy.logerr([x,y,z])
         self.move_group.set_position_target(xyz)
-        self.move_group.plan()
-        self.move_group.go()
-        return None
+        ecv, traj, time, err = self.move_group.plan()
+        # self.move_group.go()
+        self.move_group.execute(traj, wait='true')
+        self.move_group.go(wait='true')
+        self.move_group.stop()
+
+        if req.gripper_pose == True:
+            self.grip_group.set_named_target("Closed")
+
+        elif req.gripper_pose == False:
+            self.grip_group.set_named_target("Open")
+        
+        self.grip_group.go(wait='true')
+        self.grip_group.stop()
+        
+        return err.val
 
     def follow(self, req):
         '''

@@ -1,6 +1,11 @@
 <launch>
 
-    <rosparam file="$(find arm_move)/config/waypoints.yaml"/>
+    <arg name = "mode" default="yaml"/>
+
+    <group if="$(eval arg('mode') == 'yaml')">
+        <rosparam file="$(find arm_move)/config/waypoints.yaml"/>
+    </group>
+
 
     <remap from="/attached_collision_object" to="/px100/attached_collision_object"/>
     <remap from="/collision_object" to="/px100/collision_object"/>

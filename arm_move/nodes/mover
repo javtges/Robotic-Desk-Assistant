@@ -34,18 +34,16 @@ from std_msgs.msg import String
 from std_srvs.srv import Empty, EmptyResponse
 from moveit_commander.conversions import pose_to_list
 from interbotix_xs_modules.arm import InterbotixManipulatorXS
-from arm_move.srv import step, follow
+from arm_move.srv import step, follow, reset
 
 
 class Mover:
     
     def __init__(self):
 
-        self.__reset = rospy.Service("reset", Empty, self.reset)
+        self.__reset = rospy.Service("reset", reset, self.reset)
         self.__step = rospy.Service("step", step, self.step_cb)
         self.__follow = rospy.Service("follow", follow, self.follow)
-
-        #rospy.set_param('waypoints', [])
 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("mover", anonymous=True)
@@ -116,14 +114,16 @@ class Mover:
         Moves the robot to its predefined Home position
         Takes a parameter that determines if the waypoints are cleared or not - ??????????
         '''
-        self.add_box()
+
+        #self.add_box(0.2,0,0.02,0,0,0,1)
+        self.add_box(req.x,req.y,req.z,req.rx,req.ry,req.rz,req.rw)
         self.move_group.set_named_target("Home")
         self.move_group.go()
         #ToDo: edit add_box to take positional arguments
         #ToDo: edit to have option to clear waypoint list in parameter server
         rospy.logerr(self.move_group.get_current_pose())
 
-        return EmptyResponse()
+        return req.x
 
     def step_cb(self, req):
         '''
@@ -141,7 +141,7 @@ class Mover:
         rospy.logerr(err)
         if err == 1:
             # Add the waypoint to the parameter server
-            list_of_waypoints = rospy.get_param('waypoints')
+            list_of_waypoints = rospy.get_param('/waypoints')
             list_of_waypoints.append(robot_state)
             rospy.set_param('waypoints', list_of_waypoints)
         
@@ -152,40 +152,45 @@ class Mover:
         Has the robot move to each waypoint, in sequence
         Has an option that determines if the cycle should be repeated or not
         '''
-        list_of_waypoints = rospy.get_param('waypoints')
+        list_of_waypoints = rospy.get_param('/waypoints')
         rospy.logerr(list_of_waypoints)
         repeat = req.repeat
         num_wps = len(list_of_waypoints)
 
         if repeat == True:
             while True:
-                for wp in range(num_wps):
-                    x = list_of_waypoints[wp][0]
-                    y = list_of_waypoints[wp][1]
-                    z = list_of_waypoints[wp][2]
-                    g = list_of_waypoints[wp][3]
+                for wp in list_of_waypoints:
+                    x = wp[0]
+                    y = wp[1]
+                    z = wp[2]
+                    g = wp[3]
                     self.move_to_position(x,y,z,g)
                     rospy.sleep(0.5)
 
         if repeat == False:
-            for wp in range(num_wps):
-                    x = list_of_waypoints[wp][0]
-                    y = list_of_waypoints[wp][1]
-                    z = list_of_waypoints[wp][2]
-                    g = list_of_waypoints[wp][3]
+            for wp in list_of_waypoints:
+                    x = wp[0]
+                    y = wp[1]
+                    z = wp[2]
+                    g = wp[3]
                     self.move_to_position(x,y,z,g)
                     rospy.sleep(0.5)
 
         return repeat
 
-    def add_box(self, timeout=0):
+    def add_box(self,x,y,z,px,py,pz,pw, timeout=0):
 
         box_pose = geometry_msgs.msg.PoseStamped()
         box_pose.header.frame_id = "world"
-        box_pose.pose.orientation.w = 1.0
-        box_pose.pose.position.z = 0.02
-        box_pose.pose.position.y = 0  
-        box_pose.pose.position.x = 0.2 
+        box_pose.pose.orientation.w = pw
+        box_pose.pose.orientation.x = px
+        box_pose.pose.orientation.y = py
+        box_pose.pose.orientation.z = pz
+
+        box_pose.pose.position.z = z
+        box_pose.pose.position.y = y  
+        box_pose.pose.position.x = x
+
         
         box_name = "box"
         self.scene.add_box(box_name, box_pose, size=(0.14, 0.09, 0.05))

@@ -61,6 +61,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files( FILES
 #   Service1.srv
   follow.srv
+  reset.srv
   step.srv
 )
 

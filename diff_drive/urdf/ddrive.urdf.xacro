@@ -12,9 +12,6 @@
     <xacro:property name="H" value="${drive['H']}"/>
     <xacro:property name='pi' value="3.14159"/>
 
-    <!-- <xacro:include filename="$(find diff_drive)/urdf/ddrive.gazebo.xacro"/> -->
-
-
     <link name="base_link"/>
 
 

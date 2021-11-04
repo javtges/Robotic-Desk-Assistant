@@ -3,7 +3,7 @@
     <arg name = "mode" default="yaml"/>
 
     <group if="$(eval arg('mode') == 'yaml')">
-        <rosparam file="$(find arm_move)/config/waypoints.yaml"/>
+        <rosparam command="load" ns="px100" file="$(find arm_move)/config/waypoints.yaml"/>
     </group>
 
     <include file="$(find arm_move)/launch/arm_box.launch" pass_all_args="true"/>

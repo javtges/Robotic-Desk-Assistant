@@ -115,17 +115,24 @@ class Mover:
         Takes a parameter that determines if the waypoints are cleared or not - ??????????
         '''
 
-        #self.add_box(0.2,0,0.02,0,0,0,1)
         self.add_box(req.x,req.y,req.z,req.rx,req.ry,req.rz,req.rw)
         self.move_group.set_named_target("Home")
         self.move_group.go()
         
         #ToDo: edit to have option to clear waypoint list in parameter server
         #ToDo: edit to make waypoints list parameter name different for yaml version
-        #ToDo: do docstrings
-        #ToDo: do testfile
-        #ToDo: make arm.launch
+
         rospy.logerr(self.move_group.get_current_pose())
+
+        reset_waypoints = req.reset
+
+        if reset_waypoints == True:
+            
+            list_of_waypoints = rospy.get_param('/px100/waypoints')
+            list_of_waypoints.clear()
+            rospy.set_param('/px100/waypoints', list_of_waypoints)
+        else:
+            pass
 
         return resetResponse()
 
@@ -145,9 +152,9 @@ class Mover:
         rospy.logerr(err)
         if err == 1:
             # Add the waypoint to the parameter server
-            list_of_waypoints = rospy.get_param('/waypoints')
+            list_of_waypoints = rospy.get_param('/px100/waypoints')
             list_of_waypoints.append(robot_state)
-            rospy.set_param('waypoints', list_of_waypoints)
+            rospy.set_param('/px100/waypoints', list_of_waypoints)
         
         return err
 
@@ -156,7 +163,7 @@ class Mover:
         Has the robot move to each waypoint, in sequence
         Has an option that determines if the cycle should be repeated or not
         '''
-        list_of_waypoints = rospy.get_param('/waypoints')
+        list_of_waypoints = rospy.get_param('/px100/waypoints')
         rospy.logerr(list_of_waypoints)
         repeat = req.repeat
         num_wps = len(list_of_waypoints)

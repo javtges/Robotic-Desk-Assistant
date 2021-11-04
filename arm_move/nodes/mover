@@ -34,7 +34,7 @@ from std_msgs.msg import String
 from std_srvs.srv import Empty, EmptyResponse
 from moveit_commander.conversions import pose_to_list
 from interbotix_xs_modules.arm import InterbotixManipulatorXS
-from arm_move.srv import step, follow, reset
+from arm_move.srv import step, follow, reset, stepResponse, followResponse, resetResponse
 
 
 class Mover:
@@ -119,11 +119,15 @@ class Mover:
         self.add_box(req.x,req.y,req.z,req.rx,req.ry,req.rz,req.rw)
         self.move_group.set_named_target("Home")
         self.move_group.go()
-        #ToDo: edit add_box to take positional arguments
+        
         #ToDo: edit to have option to clear waypoint list in parameter server
+        #ToDo: edit to make waypoints list parameter name different for yaml version
+        #ToDo: do docstrings
+        #ToDo: do testfile
+        #ToDo: make arm.launch
         rospy.logerr(self.move_group.get_current_pose())
 
-        return req.x
+        return resetResponse()
 
     def step_cb(self, req):
         '''

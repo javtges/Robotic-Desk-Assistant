@@ -1,0 +1,3 @@
+bool repeat #If true, repeats the list of waypoints
+---
+bool repeat

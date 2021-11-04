@@ -7,7 +7,9 @@ from arm_move.srv import reset, follow, step
 from geometry_msgs.msg import Point
 
 
-class ArmTest():
+class ArmTest(unittest.TestCase):
+
+
     def __init__ (self, *args):
         super(ArmTest,self).__init__(*args)
         rospy.init_node("arm_test")
@@ -26,7 +28,7 @@ class ArmTest():
         setObj.z = 0.1
 
         error_code = self.stepProxy.call(point = setObj)
-        self.assertEqual(error_code.output, 1)
+        self.assertEqual(error_code.MoveItErrorCodes, 1)
 
 
     def test_traj_fail(self):
@@ -39,11 +41,13 @@ class ArmTest():
         setObj.z = -10
 
         error_code = self.stepProxy.call(point = setObj)
-        self.assertEqual(error_code.output, -1)
+        self.assertEqual(error_code.MoveItErrorCodes, -1)
 
 if __name__ == '__main__':
     ''' The main() function. '''
 
     import rostest
-    rostest.run('arm_move', 'arm_test', ArmTest)
-    ArmTest()
+    rostest.rosrun('arm_move', 'arm_test', ArmTest)
+
+    #ArmTest.test_traj_success()
+    #ArmTest.test_traj_fail()

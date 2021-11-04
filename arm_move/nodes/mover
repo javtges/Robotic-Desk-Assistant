@@ -34,16 +34,14 @@ from std_msgs.msg import String
 from std_srvs.srv import Empty, EmptyResponse
 from moveit_commander.conversions import pose_to_list
 from interbotix_xs_modules.arm import InterbotixManipulatorXS
-from arm_move.srv import step, follow, reset, stepResponse, followResponse, resetResponse
+from arm_move.srv import step, follow, reset, resetResponse
 
 
 class Mover:
     
     def __init__(self):
 
-        self.__reset = rospy.Service("reset", reset, self.reset)
-        self.__step = rospy.Service("step", step, self.step_cb)
-        self.__follow = rospy.Service("follow", follow, self.follow)
+        
 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("mover", anonymous=True)
@@ -58,7 +56,9 @@ class Mover:
         self.robot = moveit_commander.RobotCommander()
         print("it made it here")
         rospy.sleep(5)
-
+        self.__reset = rospy.Service("reset", reset, self.reset)
+        self.__step = rospy.Service("step", step, self.step_cb)
+        self.__follow = rospy.Service("follow", follow, self.follow)
         self.add_table()
 
 

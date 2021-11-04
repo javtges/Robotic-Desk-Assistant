@@ -1,25 +1,16 @@
 #!/usr/bin/env python
 '''
-Publishes a Twist to cmd_vel at a fixed frequency, using the python package to make the turtle travel in a figure-eight trajectory.
+Creates 3 services to move the arm to various positions (Waypoints).
 
-PUBLISHERS:
-  + cmd_vel (geometry_msgs/Twist) at a fixed frequency, causing the turtlebot to follow the desired open-loop trajectory.
-
-BROADCASTERS:
-  + A static transfrom /tf from world to odom.
-
-SUBSCRIPTIONS:
-  + /turtle1/pose (Pose) ~ continually publishes the pose of the turtle in XY coordinates, theta, angular and linear velocities.
+No publishers or subscribers in this node.
 
 SERVICES:
-  + /pause ~ stops the turtle in its place, logs the time it was paused at.
-  + /resume ~ resumes the turtle's movement, subtracts the time paused from the calculated time so that the turtle resumes in its current place.
+  + /px100/reset ~ Moves the arm to the home position, and spawns an Intel Realsense box into the Rviz scene in a defined location. Has an option to clear all the waypoints in the parameter server.
+  + /px100/step ~ Moves the gripper to the desired xyz position, with a desired gripper state (open/closed). If movement is possible, it is executed and added to the waypoints list. Otherwise an errorcode is returned.
+  + /px100/follow ~ Moves the gripper sequentially to the waypoints in the parameter server. If the repeat setting is true, it continues this loop until commanded to stop.
 
 PARAMETERS:
-  + ~pub_freq - the frequency that Twist is published to cmd_vel
-  + W - the width of the figure-eight
-  + H - the height of the figure-eight
-  + T - the period of the turtle's travel
+  + /px100/waypoints ~ A list of waypoints [x,y,z,gripper_state]. This in the launchfile is initially loaded from a YAML file, though can be cleared with the /px100/reset service.
 
 '''
 
@@ -40,8 +31,10 @@ from arm_move.srv import step, follow, reset, resetResponse
 class Mover:
     
     def __init__(self):
-
-        
+        '''
+        Initilization function. Sets up the movegroup, the gripper movegroup, and the three services.
+        Also, spawns the table in the scene after 5 seconds of delay.
+        '''
 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("mover", anonymous=True)
@@ -86,6 +79,15 @@ class Mover:
         return False
 
     def move_to_position(self, x, y, z, g):
+        '''
+        Arguments: Position coordinates x,y,z, Boolean gripper state g
+
+        Given coordinates and gripper state, moves the EE to the location if it's able.
+        This is used in the step and follow services.
+
+        Returns: MoveItErrorCode: 1 is a success, -1 is a failure to plan path.
+        '''
+
         xyz = [x,y,z]
         rospy.logerr([x,y,z])
         self.move_group.set_position_target(xyz)
@@ -110,18 +112,19 @@ class Mover:
 
     def reset(self, req):
         '''
+        Arguments: Box position x,y,z, Box orientation rx,ry,rz,rw, Reset waypoints boolean
+        
         Takes a position and orientation of the realsense box and creates/moves the realsense box to the appropriate location
         Moves the robot to its predefined Home position
-        Takes a parameter that determines if the waypoints are cleared or not - ??????????
+        If the reset boolean is true, all previously stored waypoints (from the yaml or otherwise), are cleared.
+        
+        Returns: resetResponse (Empty)
         '''
 
         self.add_box(req.x,req.y,req.z,req.rx,req.ry,req.rz,req.rw)
         self.move_group.set_named_target("Home")
         self.move_group.go()
         
-        #ToDo: edit to have option to clear waypoint list in parameter server
-        #ToDo: edit to make waypoints list parameter name different for yaml version
-
         rospy.logerr(self.move_group.get_current_pose())
 
         reset_waypoints = req.reset
@@ -138,9 +141,13 @@ class Mover:
 
     def step_cb(self, req):
         '''
-        Moves the robot to a user-specified position
-        Returns MoveItErrorCode
-        If success, adds it to parameter server
+        Arguments: Gripper position x,y,z, gripper state boolean
+
+        Moves the robot to a user-specified position, if it's possible
+        If success, adds the point and gripper state to parameter server
+        If gripper state is True, closes the grippers. If False, opens them.
+
+        Returns: int MoveItErrorCode
         '''
         x = req.point.x
         y = req.point.y
@@ -160,8 +167,13 @@ class Mover:
 
     def follow(self, req):
         '''
+        Arguments: Boolean repeat
+
         Has the robot move to each waypoint, in sequence
         Has an option that determines if the cycle should be repeated or not
+        If repeat is true, repeats going to waypoints until another service is called or the process is killed
+
+        Returns: boolean repeat
         '''
         list_of_waypoints = rospy.get_param('/px100/waypoints')
         rospy.logerr(list_of_waypoints)
@@ -190,6 +202,11 @@ class Mover:
         return repeat
 
     def add_box(self,x,y,z,px,py,pz,pw, timeout=0):
+        '''
+        Arguments: Box position x,y,z, Box orientation rx,ry,rz,rw
+
+        Spawns the box in the specified orientation/position.
+        '''
 
         box_pose = geometry_msgs.msg.PoseStamped()
         box_pose.header.frame_id = "world"
@@ -205,9 +222,14 @@ class Mover:
         
         box_name = "box"
         self.scene.add_box(box_name, box_pose, size=(0.14, 0.09, 0.05))
-        #return self.wate_for_state_update(box_is_known=True, timeout = timeout)
+        return self.wait_for_state_update(box_is_known=True, timeout = timeout)
 
     def add_table(self, timeout=0):
+        '''
+        Arguments: Box position x,y,z, Box orientation rx,ry,rz,rw
+
+        Spawns the table in the specified orientation/position.
+        '''
 
         box_pose = geometry_msgs.msg.PoseStamped()
         box_pose.header.frame_id = "world"
@@ -219,13 +241,7 @@ class Mover:
         
         box_name = "table"
         self.scene.add_box(box_name, box_pose, size=(1, 1, 1))
-        #return self.wate_for_state_update(box_is_known=True, timeout = timeout)
-
-    def move_home(self):
-        self.move_group.set_named_target("Home")
-        go = self.move_group.go(wait = 'true')
-        self.move_group.stop()
-        return
+        return self.wait_for_state_update(box_is_known=True, timeout = timeout)
 
 
 if __name__ == '__main__':

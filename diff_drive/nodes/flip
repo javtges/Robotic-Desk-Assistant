@@ -1,25 +1,9 @@
 #!/usr/bin/env python
 '''
-Publishes a Twist to cmd_vel at a fixed frequency, using the python package to make the turtle travel in a figure-eight trajectory.
+Publishes a Twist to /diff/cmd_vel at a fixed frequency. Uses the function publish_for_time to alternate the direction of the published velocity, causing the robot to flip over itself.
 
 PUBLISHERS:
-  + cmd_vel (geometry_msgs/Twist) at a fixed frequency, causing the turtlebot to follow the desired open-loop trajectory.
-
-BROADCASTERS:
-  + A static transfrom /tf from world to odom.
-
-SUBSCRIPTIONS:
-  + /turtle1/pose (Pose) ~ continually publishes the pose of the turtle in XY coordinates, theta, angular and linear velocities.
-
-SERVICES:
-  + /pause ~ stops the turtle in its place, logs the time it was paused at.
-  + /resume ~ resumes the turtle's movement, subtracts the time paused from the calculated time so that the turtle resumes in its current place.
-
-PARAMETERS:
-  + ~pub_freq - the frequency that Twist is published to cmd_vel
-  + W - the width of the figure-eight
-  + H - the height of the figure-eight
-  + T - the period of the turtle's travel
+  + /diff/cmd_vel (geometry_msgs/Twist) at a fixed frequency, causing the differential drive robot to move forwards or backwards.
 
 '''
 
@@ -32,21 +16,32 @@ from geometry_msgs.msg import Twist, Vector3
 class Flip:
     
     def __init__(self):
-        self.publisher = rospy.Publisher('/diff/cmd_vel',Twist, queue_size=10)
-        self.rate = rospy.Rate(100)
-        while not rospy.is_shutdown():
-            self.publish_for_time(2,1.5)
-            self.publish_for_time(0,0.5)
-            self.publish_for_time(-2,1.5)
+      '''
+      Initializes the node, publisher, and publishing frequency. Puts the node into a loop of continually publishing a velocity for a time, changing direction every 2 seconds.
+      '''
+      self.publisher = rospy.Publisher('/diff/cmd_vel',Twist, queue_size=10)
+      self.rate = rospy.Rate(100)
+      while not rospy.is_shutdown():
+          self.publish_for_time(2,1.5)
+          self.publish_for_time(0,0.5)
+          self.publish_for_time(-2,1.5)
 
 
     def publish_for_time(self, v, t):
-        now = rospy.Time.now()
-        length = rospy.Duration(t)
-        end = now + length
-        while rospy.Time.now() < end:
-            self.publisher.publish(Twist(linear = Vector3(x=v, y=0.0, z=0.0), angular = Vector3(x=0.0, y=0.0, z=0.0)))
-            self.rate.sleep()
+      '''
+      Arguments: velocity v, time t
+      
+      A function to publish a given linear velocity v for a time t.
+      Uses the current time and a duration of T to find out when the function should end.
+      
+      '''
+
+      now = rospy.Time.now()
+      length = rospy.Duration(t)
+      end = now + length
+      while rospy.Time.now() < end:
+          self.publisher.publish(Twist(linear = Vector3(x=v, y=0.0, z=0.0), angular = Vector3(x=0.0, y=0.0, z=0.0)))
+          self.rate.sleep()
 
 
 

@@ -52,6 +52,10 @@ class Vision:
 
         rospy.logerr('subscribed')
 
+    def show_video(self,window_name,ros_image):
+        cv2.imshow(window_name,ros_image)
+        cv2.waitKey(3)
+
     def convert_depth_image(self,ros_image):
         bridge = CvBridge()
         # Use cv_bridge() to convert the ROS image to OpenCV format
@@ -73,6 +77,9 @@ class Vision:
 
             self.find_objects()
 
+            self.show_video("test",self.rgb_image)
+
+
         except CvBridgeError:
             print(CvBridgeError())
             rospy.logerr("bad")
@@ -86,13 +93,12 @@ class Vision:
         Canny edge detection into contour recognition
         '''
 
-        canny_img = cv2.Canny(self.grayscale_image,50, 150, 3, L2gradient = True)
-        ret, thresh = cv2.threshold(canny_img, 35,255, cv2.THRESH_BINARY)
+        #canny_img = cv2.Canny(self.grayscale_image,50, 150, 3, L2gradient = True)
+
+        ret, thresh = cv2.threshold(self.grayscale_image, 35,255, cv2.THRESH_BINARY)
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         cv2.drawContours(self.rgb_image, contours, -1, (0,255,0), 3)
-
-        cv2.imshow("test",self.rgb_image)
 
 
     def find_finger_vector(self):

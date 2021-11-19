@@ -44,23 +44,6 @@ class Vision:
 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("vision", anonymous=True)
-        print("made it to init node??")
-        # self.group_name = "interbotix_arm"
-        # self.gripper_name = "interbotix_gripper"
-
-        # self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
-        # self.grip_group = moveit_commander.MoveGroupCommander(self.gripper_name)
-
-        # self.scene = moveit_commander.PlanningSceneInterface()
-        # self.robot = moveit_commander.RobotCommander()
-
-
-        # print("it made it here")
-        # rospy.sleep(5)
-        # self.__reset = rospy.Service("reset", reset, self.reset)
-        # self.__step = rospy.Service("step", step, self.step_cb)
-        # self.__follow = rospy.Service("follow", follow, self.follow)
-        # self.add_table()
 
         rospy.logerr("started the node")
 
@@ -75,13 +58,10 @@ class Vision:
         try:
             self.depth_image = bridge.imgmsg_to_cv2(ros_image)
             depth_array = np.array(self.depth_image, dtype=np.float32)
-            #self.show_video(depth_image)
 
         except CvBridgeError:
             print(CvBridgeError())
             rospy.logerr("bad")
-
-    
 
     def convert_color_image(self,ros_image):
         bridge = CvBridge()
@@ -91,13 +71,34 @@ class Vision:
             self.rgb_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2RGB)
             self.grayscale_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2GRAY)
 
-            self.find_bottle_location()
-
-            self.show_video(self.rgb_image)
+            self.find_objects()
 
         except CvBridgeError:
             print(CvBridgeError())
             rospy.logerr("bad")
+
+
+    def find_objects(self):
+        '''
+        Prompts the user to select a background area.
+        
+        OR
+        Canny edge detection into contour recognition
+        '''
+
+        canny_img = cv2.Canny(self.grayscale_image,50, 150, 3, L2gradient = True)
+        ret, thresh = cv2.threshold(canny_img, 35,255, cv2.THRESH_BINARY)
+        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        cv2.drawContours(self.rgb_image, contours, -1, (0,255,0), 3)
+
+        cv2.imshow("test",self.rgb_image)
+
+
+    def find_finger_vector(self):
+        pass
+
+
 
 
 if __name__ == '__main__':

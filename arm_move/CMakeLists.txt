@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   moveit_msgs
   rospy
+  sensor_msgs
   std_msgs
   tf2
   tf2_ros
@@ -77,7 +78,9 @@ generate_messages(
   DEPENDENCIES
   geometry_msgs
   moveit_msgs
-  std_msgs  # Or other packages containing msgs
+  sensor_msgs
+  std_msgs
+  # Or other packages containing msgs
    
 )
 
@@ -113,7 +116,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES arm_move
-  CATKIN_DEPENDS geometry_msgs message_generation message_runtime moveit_msgs rospy std_msgs 
+  CATKIN_DEPENDS geometry_msgs message_generation message_runtime moveit_msgs rospy sensor_msgs std_msgs 
 #  DEPENDS system_lib
 )
 
@@ -170,6 +173,7 @@ include_directories(
 catkin_install_python(PROGRAMS
     nodes/mover
     nodes/arm_test
+    nodes/vision
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

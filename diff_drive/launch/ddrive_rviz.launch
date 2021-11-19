@@ -1,9 +1,0 @@
-<launch>
-
-    <param name = "robot_description" command="$(find xacro)/xacro '$(find diff_drive)/urdf/ddrive.gazebo.xacro'"/>
-
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-    <node type="rviz" name="rviz" pkg="rviz" args=" -d $(find diff_drive)/config/ddrive.rviz"/>
-    <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui"/>
-
-</launch>

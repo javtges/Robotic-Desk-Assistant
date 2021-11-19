@@ -121,7 +121,7 @@ class Mover:
         Returns: resetResponse (Empty)
         '''
 
-        self.add_box(req.x,req.y,req.z,req.rx,req.ry,req.rz,req.rw)
+        #self.add_box(req.x,req.y,req.z,req.rx,req.ry,req.rz,req.rw)
         self.move_group.set_named_target("Home")
         self.move_group.go()
         

@@ -1,8 +1,8 @@
-# ME495 Homework 3
+# EE332 Final Project
 ## PX100 Arm Path Planning
 ### James Avtges
 
-This portion of the homework involves commanding the Interbotix PX100 robot arm to follow a series of waypoints and avoid obstacles.
+This package involves commanding the Interbotix PX100 robot arm to follow a series of waypoints and avoid obstacles.
 
 ### Instructions for Running the Program:
 

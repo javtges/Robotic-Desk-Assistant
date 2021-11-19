@@ -1,0 +1,106 @@
+#!/usr/bin/env python
+'''
+Creates 3 services to move the arm to various positions (Waypoints).
+
+No publishers or subscribers in this node.
+
+SERVICES:
+  + /px100/reset ~ Moves the arm to the home position, and spawns an Intel Realsense box into the Rviz scene in a defined location. Has an option to clear all the waypoints in the parameter server.
+  + /px100/step ~ Moves the gripper to the desired xyz position, with a desired gripper state (open/closed). If movement is possible, it is executed and added to the waypoints list. Otherwise an errorcode is returned.
+  + /px100/follow ~ Moves the gripper sequentially to the waypoints in the parameter server. If the repeat setting is true, it continues this loop until commanded to stop.
+
+PARAMETERS:
+  + /px100/waypoints ~ A list of waypoints [x,y,z,gripper_state]. This in the launchfile is initially loaded from a YAML file, though can be cleared with the /px100/reset service.
+
+'''
+
+import sys
+import copy
+
+import rospy
+import moveit_commander
+import moveit_msgs.msg
+import geometry_msgs.msg
+from std_msgs.msg import String
+from std_srvs.srv import Empty, EmptyResponse
+from moveit_commander.conversions import pose_to_list
+from interbotix_xs_modules.arm import InterbotixManipulatorXS
+from arm_move.srv import step, follow, reset, resetResponse
+
+from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image, CompressedImage
+import numpy as np
+import cv2
+import pyrealsense2 as rs
+
+
+class Vision:
+
+    def __init__(self):
+        '''
+        Initilization function. Sets up the movegroup, the gripper movegroup, and the three services.
+        Also, spawns the table in the scene after 5 seconds of delay.
+        '''
+
+        moveit_commander.roscpp_initialize(sys.argv)
+        rospy.init_node("vision", anonymous=True)
+        print("made it to init node??")
+        # self.group_name = "interbotix_arm"
+        # self.gripper_name = "interbotix_gripper"
+
+        # self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
+        # self.grip_group = moveit_commander.MoveGroupCommander(self.gripper_name)
+
+        # self.scene = moveit_commander.PlanningSceneInterface()
+        # self.robot = moveit_commander.RobotCommander()
+
+
+        # print("it made it here")
+        # rospy.sleep(5)
+        # self.__reset = rospy.Service("reset", reset, self.reset)
+        # self.__step = rospy.Service("step", step, self.step_cb)
+        # self.__follow = rospy.Service("follow", follow, self.follow)
+        # self.add_table()
+
+        rospy.logerr("started the node")
+
+        rospy.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, callback=self.convert_depth_image, queue_size=1)
+        rospy.Subscriber("/camera/color/image_raw", Image, callback=self.convert_color_image, queue_size=1)
+
+        rospy.logerr('subscribed')
+
+    def convert_depth_image(self,ros_image):
+        bridge = CvBridge()
+        # Use cv_bridge() to convert the ROS image to OpenCV format
+        try:
+            self.depth_image = bridge.imgmsg_to_cv2(ros_image)
+            depth_array = np.array(self.depth_image, dtype=np.float32)
+            #self.show_video(depth_image)
+
+        except CvBridgeError:
+            print(CvBridgeError())
+            rospy.logerr("bad")
+
+    
+
+    def convert_color_image(self,ros_image):
+        bridge = CvBridge()
+        try:
+            self.bgr_image = bridge.imgmsg_to_cv2(ros_image)
+            self.hsv_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2HSV)
+            self.rgb_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2RGB)
+            self.grayscale_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2GRAY)
+
+            self.find_bottle_location()
+
+            self.show_video(self.rgb_image)
+
+        except CvBridgeError:
+            print(CvBridgeError())
+            rospy.logerr("bad")
+
+
+if __name__ == '__main__':
+    ''' The main() function. '''
+    Vision()
+    rospy.spin()

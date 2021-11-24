@@ -37,10 +37,6 @@ import pyrealsense2 as rs
 class Vision:
 
     def __init__(self):
-        '''
-        Initilization function. Sets up the movegroup, the gripper movegroup, and the three services.
-        Also, spawns the table in the scene after 5 seconds of delay.
-        '''
 
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("vision", anonymous=True)
@@ -51,6 +47,7 @@ class Vision:
         rospy.Subscriber("/camera/color/image_raw", Image, callback=self.convert_color_image, queue_size=1)
 
         rospy.logerr('subscribed')
+        self.first_frame = True
 
     def show_video(self,window_name,ros_image):
         cv2.imshow(window_name,ros_image)
@@ -61,7 +58,7 @@ class Vision:
         # Use cv_bridge() to convert the ROS image to OpenCV format
         try:
             self.depth_image = bridge.imgmsg_to_cv2(ros_image)
-            depth_array = np.array(self.depth_image, dtype=np.float32)
+            # depth_array = np.array(self.depth_image, dtype=np.float32)
 
         except CvBridgeError:
             print(CvBridgeError())
@@ -79,7 +76,6 @@ class Vision:
 
             self.show_video("test",self.rgb_image)
 
-
         except CvBridgeError:
             print(CvBridgeError())
             rospy.logerr("bad")
@@ -93,20 +89,30 @@ class Vision:
         Canny edge detection into contour recognition - not sure how well it works
         '''
 
-        #canny_img = cv2.Canny(self.grayscale_image,50, 150, 3, L2gradient = True)
+        if self.first_frame:
+            self.first_grayscale = self.grayscale_image
+            self.first_frame = False
+            rospy.logerr("first frame set")
 
-        self.show_video("grayscale", self.grayscale_image)
-        blurred_grayscale = cv2.GaussianBlur(self.grayscale_image, (7,7), 1)
+        # canny_img = cv2.Canny(self.grayscale_image, 150, 200, 3, L2gradient = True)
+        
+        self.compared_gray = cv2.compare(self.first_grayscale, self.grayscale_image, cv2.CMP_NE)
 
-        thresh = cv2.adaptiveThreshold(self.grayscale_image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 10)
-        contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        self.show_video("compared", self.compared_gray)
+
+        # self.show_video("grayscale", self.grayscale_image)
+        # blurred_grayscale = cv2.GaussianBlur(self.grayscale_image, (7,7), 1)
+
+        thresh = cv2.threshold(self.compared_gray, 40, 255, cv2.THRESH_BINARY_INV)
+        contours, hierarchy = cv2.findContours(self.compared_gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         cv2.drawContours(self.rgb_image, contours, -1, (0,255,0), 3)
+
+        
 
 
     def find_finger_vector(self):
         pass
-
 
 
 

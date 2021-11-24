@@ -7,7 +7,7 @@
     </group>
 
     <include file="$(find realsense2_camera)/launch/rs_camera.launch" pass_all_args="true">
-            <arg name = "align_depth" value="true"/>
+        <arg name = "align_depth" value="true"/>
     </include>
 
     <include file="$(find arm_move)/launch/arm_box.launch" pass_all_args="true"/>

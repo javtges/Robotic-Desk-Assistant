@@ -48,6 +48,8 @@ class Vision:
 
         rospy.logerr('subscribed')
         self.first_frame = True
+        self.frame_number = 0
+        self.objects = []
 
     def show_video(self,window_name,ros_image):
         cv2.imshow(window_name,ros_image)
@@ -72,7 +74,18 @@ class Vision:
             self.rgb_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2RGB)
             self.grayscale_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2GRAY)
 
-            self.find_objects()
+            # if self.frame_number < 20:
+
+            #     locations = self.find_objects()
+
+            # self.frame_number += 1
+
+            # if self.first_frame == True:
+            #     self.objects = self.find_objects()
+            #     self.first_frame = False
+
+
+            test = self.find_objects()
 
         except CvBridgeError:
             print(CvBridgeError())
@@ -87,29 +100,16 @@ class Vision:
         Canny edge detection into contour recognition - not sure how well it works
         # '''
 
-        # if self.first_frame:
-        #     self.first_grayscale = self.grayscale_image
-        #     self.first_frame = False
-        #     rospy.logerr("first frame set")
         gauss_color = cv2.GaussianBlur(self.rgb_image, (3,3), cv2.BORDER_DEFAULT)
 
         chans = cv2.split(gauss_color)
         canny_img = np.zeros(chans[0].shape)        
 
-        # for channel in chans:
-        #     canny_int = cv2.Canny(channel, 150, 200, 3, L2gradient = True)
-        #     canny_img = cv2.bitwise_or(canny_img, canny_int)
 
         canny_img = cv2.Canny(self.grayscale_image,80,150, 3, L2gradient = True)
         
-        # self.compared_gray = cv2.compare(self.first_grayscale, self.grayscale_image, cv2.CMP_NE)
-
         self.show_video("compared", canny_img)
 
-        # self.show_video("grayscale", self.grayscale_image)
-        # blurred_grayscale = cv2.GaussianBlur(self.grayscale_image, (7,7), 1)
-
-        # thresh = cv2.threshold(canny_img, 150, 255, cv2.THRESH_BINARY)
         contours, hierarchy = cv2.findContours(canny_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         hull_list = []
@@ -118,14 +118,13 @@ class Vision:
             hull = cv2.convexHull(contours[i])
             hull_list.append(hull)
 
-
         contours_by_area = sorted(contours, key=cv2.contourArea, reverse=True)
         hulls_by_area = sorted(hull_list, key=cv2.contourArea, reverse=True)
 
         object_locations = []
 
         for cnt in range(4):
-            M = cv2.moments(contours_by_area[cnt])
+            M = cv2.moments(hulls_by_area[cnt])
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
 
@@ -133,31 +132,19 @@ class Vision:
 
             object_locations.append(location)
 
-
-        # rospy.logerr(contours.shape)
-
-        cv2.drawContours(self.rgb_image, contours_by_area, 0, (0,255,0), 3)
-        # cv2.drawContours(self.rgb_image, contours_by_area, 1, (0,255,0), 3)
-        # cv2.drawContours(self.rgb_image, contours_by_area, 2, (0,255,0), 3)
-        # cv2.drawContours(self.rgb_image, contours_by_area, 3, (0,255,0), 3)
-
-        cv2.drawContours(self.rgb_image, hulls_by_area, 0, (255,255,0), 3)
+        cv2.drawContours(self.rgb_image, hulls_by_area, 0, (255,0,0), 3)
+        cv2.drawContours(self.rgb_image, hulls_by_area, 1, (0,255,0), 3)
+        cv2.drawContours(self.rgb_image, hulls_by_area, 2, (0,0,255), 3)
         # cv2.drawContours(self.rgb_image, hulls_by_area, 3, (255,255,0), 3)
-        # cv2.drawContours(self.rgb_image, hulls_by_area, 2, (255,255,0), 3)
-        # cv2.drawContours(self.rgb_image, hulls_by_area, 1, (255,255,0), 3)
 
-
-        rospy.logdebug(object_locations[0])
+        rospy.logdebug(object_locations)
 
         self.show_video("contours", self.rgb_image)
 
-        
-
+        return object_locations
 
     def find_finger_vector(self):
         pass
-
-
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

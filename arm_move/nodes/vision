@@ -158,7 +158,51 @@ class Vision:
         intr.coeffs = [0.0, 0.0, 0.0, 0.0, 0.0]
 
         result = rs.rs2_deproject_pixel_to_point(intr, [x,y], depth_image[y,x])
-        return result 
+        return result
+
+
+    def train_data(self, ros_image):
+        hsv = np.zeros((3,2))
+        rgb = np.zeros((3,2))
+        
+        image = cv.imread(filepath+file)
+        r = cv.selectROI(image)
+        image_crop = image[r[1]:r[1]+r[3],r[0]:r[0]+r[2]]
+        hsv += make_histogram_HSV(image_crop)/num_files
+        rgb += make_histogram_RGB(image_crop)/num_files
+        
+        rospy.logdebug(f'hsv thresholds',hsv)
+        rospy.logdebug(f'rgb thresholds',rgb)
+
+        return hsv,rgb
+
+
+    def make_histogram_HSV(self, image):
+
+        image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
+        shape = image.shape
+        bounds = np.empty((3,2))
+        for i in range(shape[2]): #this should be 2
+            channel = np.array(image[:,:,i].flatten())
+            mean = np.mean(channel)
+            stdev = np.std(channel)
+            lower_bound = int(mean - 5*stdev)
+            upper_bound = int(mean + 5*stdev)
+            bounds[i] = [lower_bound,upper_bound]
+        return bounds
+
+    def make_histogram_RGB(self, image):
+        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        shape = image.shape
+        bounds = np.empty((3,2))
+        for i in range(shape[2]): #this should be 2
+            channel = np.array(image[:,:,i].flatten())
+            mean = np.mean(channel)
+            stdev = np.std(channel)
+            lower_bound = int(mean - 4*stdev)
+            upper_bound = int(mean + 4*stdev)
+            bounds[i] = [lower_bound,upper_bound]
+        return bounds
 
 
 

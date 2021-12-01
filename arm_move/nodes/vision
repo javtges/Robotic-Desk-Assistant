@@ -156,7 +156,7 @@ class Vision:
         return object_locations
 
     def find_finger_vector(self):
-        with self.mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+        with self.mp_hands.Hands(model_complexity=1, min_detection_confidence=0.35, min_tracking_confidence=0.35, max_num_hands=1) as hands:
             self.rgb_image.flags.writeable = False
             results = hands.process(self.rgb_image)
             self.rgb_image.flags.writeable = False
@@ -173,16 +173,17 @@ class Vision:
                 tip_coords = self.mp_drawing._normalized_to_pixel_coordinates(pointer_fingertip.x, pointer_fingertip.y, h, w)
                 base_coords = self.mp_drawing._normalized_to_pixel_coordinates(pointer_fingerbase.x, pointer_fingerbase.y, h, w)
 
-                self.tip = np.array(self.get_xyz_from_image(self.depth_image, tip_coords[1], tip_coords[0]))
-                self.base = np.array(self.get_xyz_from_image(self.depth_image, base_coords[1], base_coords[0]))
+                if tip_coords is not None and base_coords is not None:
+                    self.tip = np.array(self.get_xyz_from_image(self.depth_image, tip_coords[1], tip_coords[0]))
+                    self.base = np.array(self.get_xyz_from_image(self.depth_image, base_coords[1], base_coords[0]))
 
-                print(self.tip)
+                    print(self.tip)
 
-                if np.linalg.norm(self.tip) > 10 and np.linalg.norm(self.base) > 10:
-                    print('valid coords')
-                    self.finger_vector = self.tip-self.base
+                    if np.linalg.norm(self.tip) > 10 and np.linalg.norm(self.base) > 10:
+                        print('valid coords')
+                        self.finger_vector = self.tip-self.base
 
-                    print("vector",self.finger_vector)
+                        print("vector",self.finger_vector)
 
 
                     

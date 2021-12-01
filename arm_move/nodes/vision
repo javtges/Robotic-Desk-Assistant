@@ -81,7 +81,8 @@ class Vision:
             # self.frame_number += 1
 
             # if self.first_frame == True:
-            #     self.objects = self.find_objects()
+            #     # self.objects = self.find_objects()
+            #     self.hsv_thresh, self.rgb_thresh = self.train_data(self.rgb_image)
             #     self.first_frame = False
 
 
@@ -106,7 +107,11 @@ class Vision:
         canny_img = np.zeros(chans[0].shape)        
 
 
-        canny_img = cv2.Canny(self.grayscale_image,80,150, 3, L2gradient = True)
+        canny_img = cv2.Canny(self.grayscale_image,50,150, 5, L2gradient = True)
+        kernel = np.ones((15,15), np.uint8)
+
+        canny_img = cv2.dilate(canny_img, kernel, iterations=1)
+        # canny_img = cv2.erode(canny_img, kernel, iterations=1)
         
         self.show_video("compared", canny_img)
 
@@ -135,10 +140,11 @@ class Vision:
         cv2.drawContours(self.rgb_image, hulls_by_area, 0, (255,0,0), 3)
         cv2.drawContours(self.rgb_image, hulls_by_area, 1, (0,255,0), 3)
         cv2.drawContours(self.rgb_image, hulls_by_area, 2, (0,0,255), 3)
-        # cv2.drawContours(self.rgb_image, hulls_by_area, 3, (255,255,0), 3)
+        cv2.drawContours(self.rgb_image, hulls_by_area, 3, (255,255,0), 3)
 
         rospy.logdebug(object_locations)
 
+        self.show_video("grayscale", self.grayscale_image)
         self.show_video("contours", self.rgb_image)
 
         return object_locations
@@ -161,49 +167,47 @@ class Vision:
         return result
 
 
-    def train_data(self, ros_image):
-        hsv = np.zeros((3,2))
-        rgb = np.zeros((3,2))
+    # def train_data(self, ros_image):
+    #     hsv = np.zeros((3,2))
+    #     rgb = np.zeros((3,2))
         
-        image = cv.imread(filepath+file)
-        r = cv.selectROI(image)
-        image_crop = image[r[1]:r[1]+r[3],r[0]:r[0]+r[2]]
-        hsv += make_histogram_HSV(image_crop)/num_files
-        rgb += make_histogram_RGB(image_crop)/num_files
+    #     image = ros_image
+    #     r = cv2.selectROI(image)
+    #     image_crop = image[r[1]:r[1]+r[3],r[0]:r[0]+r[2]]
+    #     hsv += self.make_histogram_HSV(image_crop)/num_files
+    #     rgb += self.make_histogram_RGB(image_crop)/num_files
         
-        rospy.logdebug(f'hsv thresholds',hsv)
-        rospy.logdebug(f'rgb thresholds',rgb)
+    #     rospy.logdebug(f'hsv thresholds',hsv)
+    #     rospy.logdebug(f'rgb thresholds',rgb)
 
-        return hsv,rgb
+    #     return hsv,rgb
 
+    # def make_histogram_HSV(self, image):
 
-    def make_histogram_HSV(self, image):
+    #     image = cv2.cvtColor(image, cv.COLOR_BGR2HSV)
+    #     shape = image.shape
+    #     bounds = np.empty((3,2))
+    #     for i in range(shape[2]): #this should be 2
+    #         channel = np.array(image[:,:,i].flatten())
+    #         mean = np.mean(channel)
+    #         stdev = np.std(channel)
+    #         lower_bound = int(mean - 3*stdev)
+    #         upper_bound = int(mean + 3*stdev)
+    #         bounds[i] = [lower_bound,upper_bound]
+    #     return bounds
 
-        image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
-        shape = image.shape
-        bounds = np.empty((3,2))
-        for i in range(shape[2]): #this should be 2
-            channel = np.array(image[:,:,i].flatten())
-            mean = np.mean(channel)
-            stdev = np.std(channel)
-            lower_bound = int(mean - 5*stdev)
-            upper_bound = int(mean + 5*stdev)
-            bounds[i] = [lower_bound,upper_bound]
-        return bounds
-
-    def make_histogram_RGB(self, image):
-        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-        shape = image.shape
-        bounds = np.empty((3,2))
-        for i in range(shape[2]): #this should be 2
-            channel = np.array(image[:,:,i].flatten())
-            mean = np.mean(channel)
-            stdev = np.std(channel)
-            lower_bound = int(mean - 4*stdev)
-            upper_bound = int(mean + 4*stdev)
-            bounds[i] = [lower_bound,upper_bound]
-        return bounds
-
+    # def make_histogram_RGB(self, image):
+    #     image = cv2.cvtColor(image, cv.COLOR_BGR2RGB)
+    #     shape = image.shape
+    #     bounds = np.empty((3,2))
+    #     for i in range(shape[2]): #this should be 2
+    #         channel = np.array(image[:,:,i].flatten())
+    #         mean = np.mean(channel)
+    #         stdev = np.std(channel)
+    #         lower_bound = int(mean - 3*stdev)
+    #         upper_bound = int(mean + 3*stdev)
+    #         bounds[i] = [lower_bound,upper_bound]
+    #     return bounds
 
 
 if __name__ == '__main__':

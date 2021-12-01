@@ -161,14 +161,25 @@ class Vision:
             results = hands.process(self.rgb_image)
             self.rgb_image.flags.writeable = False
 
+            h, w  = self.grayscale_image.shape
+
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    self.mp_drawing.draw_landmarks(
-                        self.rgb_image,
-                        hand_landmarks,
-                        self.mp_hands.HAND_CONNECTIONS,
-                        self.mp_drawing_styles.get_default_hand_landmarks_style(),
-                        self.mp_drawing_styles.get_default_hand_connections_style())
+                    self.mp_drawing.draw_landmarks(self.rgb_image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS, self.mp_drawing_styles.get_default_hand_landmarks_style(), self.mp_drawing_styles.get_default_hand_connections_style())
+                pointer_fingertip = hand_landmarks.landmark[8]
+                pointer_fingerbase = hand_landmarks.landmark[5]
+
+                print(pointer_fingertip)
+                tip_coords = self.mp_drawing._normalized_to_pixel_coordinates(pointer_fingertip.x, pointer_fingertip.y, h, w)
+                base_coords = self.mp_drawing._normalized_to_pixel_coordinates(pointer_fingerbase.x, pointer_fingerbase.y, h, w)
+
+                self.tip = self.get_xyz_from_image(self.depth_image, tip_coords[1], tip_coords[0])
+                self.coords = self.get_xyz_from_image(self.depth_image, base_coords[1], base_coords[0])
+
+                print(self.tip)
+
+
+                    
 
         self.show_video("hand test", self.rgb_image)
 

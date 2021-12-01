@@ -32,6 +32,7 @@ from sensor_msgs.msg import Image, CompressedImage
 import numpy as np
 import cv2
 import pyrealsense2 as rs
+import mediapipe as mp
 
 
 class Vision:
@@ -47,6 +48,11 @@ class Vision:
         rospy.Subscriber("/camera/color/image_raw", Image, callback=self.convert_color_image, queue_size=1)
 
         rospy.logerr('subscribed')
+
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.mp_hands = mp.solutions.hands
+
         self.first_frame = True
         self.frame_number = 0
         self.objects = []
@@ -86,7 +92,8 @@ class Vision:
             #     self.first_frame = False
 
 
-            test = self.find_objects()
+            # test = self.find_objects()
+            self.find_finger_vector()
 
         except CvBridgeError:
             print(CvBridgeError())
@@ -103,9 +110,8 @@ class Vision:
 
         gauss_color = cv2.GaussianBlur(self.rgb_image, (3,3), cv2.BORDER_DEFAULT)
 
-        chans = cv2.split(gauss_color)
-        canny_img = np.zeros(chans[0].shape)        
-
+        # chans = cv2.split(gauss_color)
+        canny_img = np.zeros(self.grayscale_image.shape)        
 
         canny_img = cv2.Canny(self.grayscale_image,50,150, 5, L2gradient = True)
         kernel = np.ones((15,15), np.uint8)
@@ -150,7 +156,21 @@ class Vision:
         return object_locations
 
     def find_finger_vector(self):
-        pass
+        with self.mp_hands.Hands(model_complexity=0, min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+            self.rgb_image.flags.writeable = False
+            results = hands.process(self.rgb_image)
+            self.rgb_image.flags.writeable = False
+
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    self.mp_drawing.draw_landmarks(
+                        self.rgb_image,
+                        hand_landmarks,
+                        self.mp_hands.HAND_CONNECTIONS,
+                        self.mp_drawing_styles.get_default_hand_landmarks_style(),
+                        self.mp_drawing_styles.get_default_hand_connections_style())
+
+        self.show_video("hand test", self.rgb_image)
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

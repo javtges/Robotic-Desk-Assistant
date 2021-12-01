@@ -173,10 +173,16 @@ class Vision:
                 tip_coords = self.mp_drawing._normalized_to_pixel_coordinates(pointer_fingertip.x, pointer_fingertip.y, h, w)
                 base_coords = self.mp_drawing._normalized_to_pixel_coordinates(pointer_fingerbase.x, pointer_fingerbase.y, h, w)
 
-                self.tip = self.get_xyz_from_image(self.depth_image, tip_coords[1], tip_coords[0])
-                self.coords = self.get_xyz_from_image(self.depth_image, base_coords[1], base_coords[0])
+                self.tip = np.array(self.get_xyz_from_image(self.depth_image, tip_coords[1], tip_coords[0]))
+                self.base = np.array(self.get_xyz_from_image(self.depth_image, base_coords[1], base_coords[0]))
 
                 print(self.tip)
+
+                if np.linalg.norm(self.tip) > 10 and np.linalg.norm(self.base) > 10:
+                    print('valid coords')
+                    self.finger_vector = self.tip-self.base
+
+                    print("vector",self.finger_vector)
 
 
                     

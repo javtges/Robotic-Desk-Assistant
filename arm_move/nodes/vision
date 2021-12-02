@@ -210,10 +210,6 @@ class Vision:
         for i in range(4):
             self.rgb_image = cv2.circle(self.rgb_image, self.object_coords[i], 3, (0,0,255), 3)
 
-
-        # self.show_video("hand test", self.rgb_image)
-
-
     def find_finger_coords(self, img):
 
         lmlist = []
@@ -241,9 +237,13 @@ class Vision:
             r = np.argmin(self.distances)
             self.rgb_image = cv2.drawContours(self.rgb_image, self.hulls_by_area, r, (0,255,0), 3)
             print(self.objects[r])
+            robot_coords = self.transform(self.objects[r])
+            print('robot coords:',robot_coords)
 
-
-        
+    def transform(self, camera_coords):
+        result = np.array(camera_coords) + np.array([32, 269, 0])
+        result  = np.multiply(result, [-1, 1, 1])
+        return result
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

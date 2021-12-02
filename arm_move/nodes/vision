@@ -56,7 +56,8 @@ class Vision:
         self.mp_hands = mp.solutions.hands
 
         self.first_frame = True
-        self.frame_number = 0
+        self.waiting = False
+        self.wait_frame = 0
         self.objects = []
         self.distances = [200,200,200,200]
         self.found_object = False
@@ -84,19 +85,29 @@ class Vision:
             self.rgb_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2RGB)
             self.grayscale_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2GRAY)
 
-            if self.first_frame == True:
-                self.objects = self.find_objects()
-                self.first_frame = False
+            if self.waiting:
+                self.wait_frame += 1
+                print("waiting")
+                if self.wait_frame == 60:
+                    self.waiting = False
+                    self.wait_frame = 0
+            else:
+                if self.first_frame == True:
+                    self.objects = self.find_objects()
+                    self.first_frame = False
 
-            self.find_finger_vector()
+                self.find_finger_vector()
 
-            self.find_nearest_object()
+                self.find_nearest_object()
 
-            if self.found_object:
-                self.move_robot()
-                self.found_object = False
+                if self.found_object:
+                    self.move_robot()
+                    self.found_object = False
+                    self.first_frame = True
+                    self.waiting = True
 
             self.show_video("testtest", self.rgb_image)
+
 
         except CvBridgeError:
             print(CvBridgeError())
@@ -121,7 +132,7 @@ class Vision:
         canny_img = cv2.dilate(canny_img, kernel, iterations=1)
         # canny_img = cv2.erode(canny_img, kernel, iterations=1)
         
-        self.show_video("compared", canny_img)
+        # self.show_video("compared", canny_img)
 
         contours, hierarchy = cv2.findContours(canny_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -157,7 +168,7 @@ class Vision:
 
         rospy.logdebug(object_locations)
 
-        self.show_video("grayscale", self.grayscale_image)
+        # self.show_video("grayscale", self.grayscale_image)
         self.show_video("contours", self.rgb_image)
 
         return object_locations

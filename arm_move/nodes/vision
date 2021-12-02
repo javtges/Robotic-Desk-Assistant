@@ -46,8 +46,8 @@ class Vision:
 
         rospy.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, callback=self.convert_depth_image, queue_size=1)
         rospy.Subscriber("/camera/color/image_raw", Image, callback=self.convert_color_image, queue_size=1)
-        reset_service = rospy.ServiceProxy('reset', reset)
-        step_service = rospy.ServiceProxy('step', step)
+        self.reset_service = rospy.ServiceProxy('/px100/reset', reset)
+        self.step_service = rospy.ServiceProxy('/px100/step', step)
 
         rospy.logerr('subscribed')
 
@@ -235,6 +235,7 @@ class Vision:
             print(self.objects[r])
             self.robot_coords = self.transform(self.objects[r])
             print('robot coords:',self.robot_coords)
+            self.found_object = True
 
     def transform(self, camera_coords):
         result = np.array(camera_coords) + np.array([32, 269, 0])
@@ -242,7 +243,7 @@ class Vision:
         return result
 
     def move_robot(self):
-        pass
+        self.reset_service(0,0,0,0,0,0,0,False)
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

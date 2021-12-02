@@ -242,8 +242,35 @@ class Vision:
         result  = np.multiply(result, [-1, 1, 1])
         return result
 
+    def pointify(self, xyz):
+        result = geometry_msgs.msg.Point()
+        result.x = xyz[0] / 1000
+        result.y = xyz[1] / 1000
+        result.z = xyz[2]
+
+        return result
+        
+    
     def move_robot(self):
+        rospy.logdebug("MOVING TO HOME POSITION!!!")
         self.reset_service(0,0,0,0,0,0,0,False)
+
+        rospy.logdebug("MOVING TO THE OBJECT!!!")
+        point1 = self.pointify([self.robot_coords[0], self.robot_coords[1], 0.19309])
+        self.step_service(point1, False)
+
+        rospy.logdebug("PICKING UP THE OBJECT!!!")
+        point2 = self.pointify([self.robot_coords[0], self.robot_coords[1], 0.023882])
+        self.step_service(point2, True)
+
+        rospy.logdebug("DROPPING OFF THE OBJECT!!!")
+        point3 = self.pointify([0.24858,0,0.19309])
+        self.step_service(point3,False)
+
+        rospy.logdebug("MAYBE IT'S DONE???")
+
+
+
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

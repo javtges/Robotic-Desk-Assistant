@@ -56,6 +56,7 @@ class Vision:
         self.first_frame = True
         self.frame_number = 0
         self.objects = []
+        self.distances = [200,200,200,200]
 
     def show_video(self,window_name,ros_image):
         cv2.imshow(window_name,ros_image)
@@ -96,6 +97,8 @@ class Vision:
 
             self.find_nearest_object()
 
+            self.show_video("testtest", self.rgb_image)
+
         except CvBridgeError:
             print(CvBridgeError())
             rospy.logerr("bad")
@@ -131,13 +134,13 @@ class Vision:
             hull_list.append(hull)
 
         contours_by_area = sorted(contours, key=cv2.contourArea, reverse=True)
-        hulls_by_area = sorted(hull_list, key=cv2.contourArea, reverse=True)
+        self.hulls_by_area = sorted(hull_list, key=cv2.contourArea, reverse=True)
 
         object_locations = []
         self.object_coords = []
 
         for cnt in range(4):
-            M = cv2.moments(hulls_by_area[cnt])
+            M = cv2.moments(self.hulls_by_area[cnt])
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
 
@@ -149,10 +152,10 @@ class Vision:
 
             object_locations.append(location)
 
-        cv2.drawContours(self.rgb_image, hulls_by_area, 0, (255,0,0), 3)
-        cv2.drawContours(self.rgb_image, hulls_by_area, 1, (0,255,0), 3)
-        cv2.drawContours(self.rgb_image, hulls_by_area, 2, (0,0,255), 3)
-        cv2.drawContours(self.rgb_image, hulls_by_area, 3, (255,255,0), 3)
+        cv2.drawContours(self.rgb_image, self.hulls_by_area, 0, (255,0,0), 3)
+        cv2.drawContours(self.rgb_image, self.hulls_by_area, 1, (0,255,0), 3)
+        cv2.drawContours(self.rgb_image, self.hulls_by_area, 2, (0,0,255), 3)
+        cv2.drawContours(self.rgb_image, self.hulls_by_area, 3, (255,255,0), 3)
 
         rospy.logdebug(object_locations)
 
@@ -208,7 +211,7 @@ class Vision:
             self.rgb_image = cv2.circle(self.rgb_image, self.object_coords[i], 3, (0,0,255), 3)
 
 
-        self.show_video("hand test", self.rgb_image)
+        # self.show_video("hand test", self.rgb_image)
 
 
     def find_finger_coords(self, img):
@@ -225,15 +228,22 @@ class Vision:
 
     def find_nearest_object(self):
 
-        for obj in self.objects:
+        for obj in range(len(self.objects)):
 
             try:
-                # print(obj)
-                d = np.linalg.norm(np.cross(self.fingertip_extended - self.base , np.subtract(self.base, obj) ) / np.linalg.norm(self.fingertip_extended - self.base))
+                d = np.linalg.norm(np.cross(self.fingertip_extended - self.base , np.subtract(self.base, self.objects[obj]) ) / np.linalg.norm(self.fingertip_extended - self.base))
                 print("distance", d)
+                self.distances[obj] = d
             except:
                 pass
-        # print(self.objects[0])
+        
+        if min(self.distances) < 30:
+            r = np.argmin(self.distances)
+            self.rgb_image = cv2.drawContours(self.rgb_image, self.hulls_by_area, r, (0,255,0), 3)
+            print(self.objects[r])
+
+
+        
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()
@@ -248,50 +258,6 @@ class Vision:
 
         result = rs.rs2_deproject_pixel_to_point(intr, [x,y], depth_image[y,x])
         return result
-
-
-    # def train_data(self, ros_image):
-    #     hsv = np.zeros((3,2))
-    #     rgb = np.zeros((3,2))
-        
-    #     image = ros_image
-    #     r = cv2.selectROI(image)
-    #     image_crop = image[r[1]:r[1]+r[3],r[0]:r[0]+r[2]]
-    #     hsv += self.make_histogram_HSV(image_crop)/num_files
-    #     rgb += self.make_histogram_RGB(image_crop)/num_files
-        
-    #     rospy.logdebug(f'hsv thresholds',hsv)
-    #     rospy.logdebug(f'rgb thresholds',rgb)
-
-    #     return hsv,rgb
-
-    # def make_histogram_HSV(self, image):
-
-    #     image = cv2.cvtColor(image, cv.COLOR_BGR2HSV)
-    #     shape = image.shape
-    #     bounds = np.empty((3,2))
-    #     for i in range(shape[2]): #this should be 2
-    #         channel = np.array(image[:,:,i].flatten())
-    #         mean = np.mean(channel)
-    #         stdev = np.std(channel)
-    #         lower_bound = int(mean - 3*stdev)
-    #         upper_bound = int(mean + 3*stdev)
-    #         bounds[i] = [lower_bound,upper_bound]
-    #     return bounds
-
-    # def make_histogram_RGB(self, image):
-    #     image = cv2.cvtColor(image, cv.COLOR_BGR2RGB)
-    #     shape = image.shape
-    #     bounds = np.empty((3,2))
-    #     for i in range(shape[2]): #this should be 2
-    #         channel = np.array(image[:,:,i].flatten())
-    #         mean = np.mean(channel)
-    #         stdev = np.std(channel)
-    #         lower_bound = int(mean - 3*stdev)
-    #         upper_bound = int(mean + 3*stdev)
-    #         bounds[i] = [lower_bound,upper_bound]
-    #     return bounds
-
 
 if __name__ == '__main__':
     ''' The main() function. '''

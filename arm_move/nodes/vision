@@ -100,6 +100,8 @@ class Vision:
 
                 self.find_nearest_object()
 
+                self.show_video("testtest", self.rgb_image)
+
                 if self.found_object:
                     self.move_robot()
                     self.found_object = False
@@ -168,7 +170,6 @@ class Vision:
 
         rospy.logdebug(object_locations)
 
-        # self.show_video("grayscale", self.grayscale_image)
         self.show_video("contours", self.rgb_image)
 
         return object_locations
@@ -249,7 +250,7 @@ class Vision:
             self.found_object = True
 
     def transform(self, camera_coords):
-        result = np.array(camera_coords) + np.array([32, 269, 0])
+        result = np.array(camera_coords) + np.array([18, 259, 0])
         result  = np.multiply(result, [-1, 1, 1])
         return result
 
@@ -279,9 +280,6 @@ class Vision:
         self.step_service(point3,False)
 
         rospy.logdebug("MAYBE IT'S DONE???")
-
-
-
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

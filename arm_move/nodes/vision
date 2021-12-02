@@ -46,6 +46,8 @@ class Vision:
 
         rospy.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, callback=self.convert_depth_image, queue_size=1)
         rospy.Subscriber("/camera/color/image_raw", Image, callback=self.convert_color_image, queue_size=1)
+        reset_service = rospy.ServiceProxy('reset', reset)
+        step_service = rospy.ServiceProxy('step', step)
 
         rospy.logerr('subscribed')
 
@@ -57,6 +59,7 @@ class Vision:
         self.frame_number = 0
         self.objects = []
         self.distances = [200,200,200,200]
+        self.found_object = False
 
     def show_video(self,window_name,ros_image):
         cv2.imshow(window_name,ros_image)
@@ -81,28 +84,23 @@ class Vision:
             self.rgb_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2RGB)
             self.grayscale_image = cv2.cvtColor(self.bgr_image, cv2.COLOR_BGR2GRAY)
 
-            # if self.frame_number < 20:
-
-            #     locations = self.find_objects()
-
-            # self.frame_number += 1
-
             if self.first_frame == True:
                 self.objects = self.find_objects()
-                # self.hsv_thresh, self.rgb_thresh = self.train_data(self.rgb_image)
                 self.first_frame = False
 
-            # self.obje = self.find_objects()
             self.find_finger_vector()
 
             self.find_nearest_object()
+
+            if self.found_object:
+                self.move_robot()
+                self.found_object = False
 
             self.show_video("testtest", self.rgb_image)
 
         except CvBridgeError:
             print(CvBridgeError())
             rospy.logerr("bad")
-
 
     def find_objects(self):
         '''
@@ -221,11 +219,9 @@ class Vision:
                 lmlist.append([id, cx, cy])
         return lmlist
 
-
     def find_nearest_object(self):
 
         for obj in range(len(self.objects)):
-
             try:
                 d = np.linalg.norm(np.cross(self.fingertip_extended - self.base , np.subtract(self.base, self.objects[obj]) ) / np.linalg.norm(self.fingertip_extended - self.base))
                 print("distance", d)
@@ -237,13 +233,16 @@ class Vision:
             r = np.argmin(self.distances)
             self.rgb_image = cv2.drawContours(self.rgb_image, self.hulls_by_area, r, (0,255,0), 3)
             print(self.objects[r])
-            robot_coords = self.transform(self.objects[r])
-            print('robot coords:',robot_coords)
+            self.robot_coords = self.transform(self.objects[r])
+            print('robot coords:',self.robot_coords)
 
     def transform(self, camera_coords):
         result = np.array(camera_coords) + np.array([32, 269, 0])
         result  = np.multiply(result, [-1, 1, 1])
         return result
+
+    def move_robot(self):
+        pass
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

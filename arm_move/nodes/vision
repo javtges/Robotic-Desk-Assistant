@@ -134,11 +134,16 @@ class Vision:
         hulls_by_area = sorted(hull_list, key=cv2.contourArea, reverse=True)
 
         object_locations = []
+        self.object_coords = []
 
         for cnt in range(4):
             M = cv2.moments(hulls_by_area[cnt])
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
+
+            self.object_coords.append((cx,cy))
+
+            self.rgb_image = cv2.circle(self.rgb_image, (cx,cy), 3, (255,0,0), 3)
 
             location = self.get_xyz_from_image(self.depth_image, cx, cy)
 
@@ -179,9 +184,15 @@ class Vision:
                 tip_coords = landmark_list[8][1:3]
                 base_coords = landmark_list[5][1:3]
 
+                self.fingertip_extended_coord = [base_coords[0] + 10*(tip_coords[0] - base_coords[0]), base_coords[1] + 10*(tip_coords[1] - base_coords[1])]
+                self.rgb_image = cv2.line(self.rgb_image, base_coords, self.fingertip_extended_coord, (255,255,0), 3)
+                self.rgb_image = cv2.line(self.rgb_image, base_coords, tip_coords, (0,255,0), 2)
+
+
                 if tip_coords is not None and base_coords is not None:
                     self.tip = np.array(self.get_xyz_from_image(self.depth_image, tip_coords[0], tip_coords[1]))
                     self.base = np.array(self.get_xyz_from_image(self.depth_image, base_coords[0], base_coords[1]))
+
 
                     print("coordinates", tip_coords, " and", base_coords)
 
@@ -189,7 +200,13 @@ class Vision:
                         print('valid coords')
                         self.finger_vector = self.tip-self.base
 
+                        self.fingertip_extended = self.tip + 10*(self.finger_vector)
+
                         print("vector from",self.base, " to", self.tip)
+
+        for i in range(4):
+            self.rgb_image = cv2.circle(self.rgb_image, self.object_coords[i], 3, (0,0,255), 3)
+
 
         self.show_video("hand test", self.rgb_image)
 
@@ -207,14 +224,16 @@ class Vision:
 
 
     def find_nearest_object(self):
+
         for obj in self.objects:
-            print(obj)
+
             try:
-                d = np.cross(self.finger_vector, self.base - obj_loc)/np.linalg.norm(self.finger_vector)
-                print(d)
+                # print(obj)
+                d = np.linalg.norm(np.cross(self.fingertip_extended - self.base , np.subtract(self.base, obj) ) / np.linalg.norm(self.fingertip_extended - self.base))
+                print("distance", d)
             except:
-                print('no hand found')
-        print(self.objects[0])
+                pass
+        # print(self.objects[0])
 
     def get_xyz_from_image(self,depth_image, x,y):
         intr = rs.intrinsics()

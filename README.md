@@ -8,7 +8,7 @@ For anyone with a cluttered desk or a large workspace, a small robotic arm may b
  - Determine in three dimensions where the user points their index finger, and
  - Control the arm to pick up and manipulate objects that are pointed to.
 
-![Object Selection by Gesture Recognition](https://imgur.com/a/ci6AY0v.jpg)
+![Object Selection by Gesture Recognition](https://imgur.com/a/ci6AY0v)
 
 Media Links:
 

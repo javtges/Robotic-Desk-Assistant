@@ -1,21 +1,19 @@
-# ME495 Homework 3
+# Robotic Desk Assistant
 ## James Avtges
 
-This homework assignemnt is broken down into two major components:
+The goal for this project was to gain experience with object detection, stereo imaging, and gesture recognition in the context of programming a robotic desk assistant.
 
-- Constructing and controlling a differential drive robot
-- Path planning for a 4 DOF robot arm (Interbotix PX100)
+For anyone with a cluttered desk or a large workspace, a small robotic arm may be a useful companion to help with organization or to extend one’s reach. To that end, the overall goal is to use computer vision to accomplish the following tasks:
+ - Recognize objects in the workspace (on a desk),
+ - Determine in three dimensions where the user points their index finger, and
+ - Control the arm to pick up and manipulate objects that are pointed to.
 
-### Differential Drive Robot:
+![Object Selection by Gesture Recognition](https://imgur.com/a/ci6AY0v.jpg)
 
-The objective from this component is to make a urdf to construct a model of a differential drive robot, import it into a custom gazebo world, and command it to do some flips and other fun behavior.
+Media Links:
 
-[Example Video of Gazebo Simulation](https://www.youtube.com/watch?v=1RVTJSY-gHs&ab_channel=James)
-
-### Arm Path Planning
-
-The objective here is to use the Interbotix PX100 arm to follow a series of waypoints in RViz, gazebo, and on a real robot. This involves experimentation with path-planning around obstacles and basic picking up of objects in simulation and in the real world.
-
-[PX100 Arm Gazebo Simulation](https://youtu.be/Weg_5HM9_M4)
-
-[PX100 Arm Real World Test](https://youtu.be/2_Pk6dL4WFc)
+Below is a list of links to relevant videos, presentations, and the project’s source code.
+ - [Final Project Presentation Slides](https://docs.google.com/presentation/u/4/d/1gg9APFFDsnewLa_2U-g9pITMzqreRZDsGe91Y61tNdQ/edit)
+ - [Video Demonstration of Finger Tracking](https://youtu.be/mk7GI1-TJjs)
+ - [Object Selection and Robot Visualization Demonstration](https://youtu.be/c6ME-JdIgbI)
+ - [Robotic Desk Assistant Full Demonstration](https://youtu.be/q6vao0UIHJs)

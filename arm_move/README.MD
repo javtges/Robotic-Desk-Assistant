@@ -1,4 +1,4 @@
-# EE332 Final Project
+# Robotic Desk Assistant
 ## PX100 Arm Path Planning
 ### James Avtges
 
